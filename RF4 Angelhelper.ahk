@@ -1,6 +1,5 @@
 ﻿#SingleInstance, force
 #Include Data/shinsoverlayclass.ahk
-#Include Data/ShinsImageScanClass.ahk
 
 SetWorkingDir %A_ScriptDir%
 
