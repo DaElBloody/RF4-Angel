@@ -7,16 +7,24 @@ RF4_window := "ahk_exe rf4_x64.exe"
 
 overlay := new ShinsOverlayClass(RF4_window)
 
-; Basiswert in Millisekunden
-pressTime := 500 ; 0,5 Sekunden
-extendPause :=  500   ; 0 Sekunden
-randomRange := 50    ; maximale Abweichung (+/- ms)
 
+; Hier können die Tasten angepasst werde.
+global KeyL := "PgDn"
+global KeyR := "PgUp"
+
+
+; Zeiten zum ändern.
 JiggTime := 1650
 TwitchTime := 350
 PilkTime := 1000
+extendPause :=  500 ; Pausenzeit
 
-running := false      ; Loop-Status
+;=============== Nicht Anfassen ==================
+
+; Basiswert in Millisekunden
+pressTime := 500  
+randomRange := 50    
+running := false     
 toggle := false
 toggle1 := true
 toggle2 := false
@@ -75,7 +83,7 @@ MenuUI:
     Gui, Main:Add, Text, x20 y207 w120 h20, PositionY: %spot1Y%
     Gui, Main:Add, Text, x20 y220 w120 h20, Key to Start: Pos1
     Gui, Main:Add, Button, x120 y195 w80 h40 gsetClick, Set Click Position
-    
+
     Gui, Main:Show, , RF4 Tool
 Return
 
@@ -165,11 +173,11 @@ return
     toggle := !toggle
     if (toggle) {
         ; Taste gedrückt halten
-        Send, {PgDn down}
+        Send, {%KeyL% down}
         ;ToolTip, Einholen an.
     } else {
         ; Taste loslassen
-        Send, {PgDn up}
+        Send, {%KeyL% up}
         ;ToolTip, Einholen aus.
     }
 Return
@@ -229,9 +237,9 @@ PressLoop:
         pauseTime := 50
 
     ; Taste halten
-    Send, {PgDn down}
+    Send, {%KeyL% down}
     Sleep, %holdTime%
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 
     ; Pause nach dem Halten
     Newtime := pauseTime + extendPause
@@ -248,9 +256,9 @@ PressLoop2:
     Random, pauseTime2, % extendPause - randomRange, % extendPause + randomRange
 
     ; Taste halten
-    Send, {PgDn down}
+    Send, {%KeyL% down}
     Sleep, %holdTime2%
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 
     Newtime := pauseTime2
     Sleep, %Newtime%
@@ -264,9 +272,9 @@ PressLoop3:
     Random, pauseTime2, % extendPause - randomRange, % extendPause + randomRange
 
     ; Taste halten
-    Send, {PgUp down}
+    Send, {%KeyR% down}
     Sleep, %holdTime2%
-    Send, {PgUp up}
+    Send, {%KeyR% up}
 
     Newtime := pauseTime2
     Sleep, %Newtime%
@@ -407,7 +415,7 @@ F7::ExitApp
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -417,7 +425,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -432,7 +440,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -450,11 +458,11 @@ return
     sleep, 500
     Send, {Shift Down}
     sleep 50
-    Send, {PgDn Down}
+    Send, {%KeyL% Down}
     Sleep, 500
     Send, {Shift Up}
     ;Send, ^{Click Right}
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 return
 
 ~2::
@@ -463,7 +471,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -478,7 +486,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -488,7 +496,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -503,7 +511,7 @@ return
     toggle2 := false
     SetTimer, PressLoop, Off
     SetTimer, PressLoop2, Off
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -521,11 +529,11 @@ return
     sleep, 500
     Send, {Shift Down}
     sleep 50
-    Send, {PgDn Down}
+    Send, {%KeyL% Down}
     Sleep, 500
     Send, {Shift Up}
     ;Send, ^{Click Right}
-    Send, {PgDn up}
+    Send, {%KeyL% up}
 ;ToolTip, Stop.
 return
 
@@ -563,4 +571,6 @@ looper:
     Send, {Space}
     sleep 100
 Return
+
+
 
