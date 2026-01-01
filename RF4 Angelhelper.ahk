@@ -7,38 +7,50 @@ RF4_window := "ahk_exe rf4_x64.exe"
 
 overlay := new ShinsOverlayClass(RF4_window)
 
-
-; Hier können die Tasten angepasst werde.
+; Hier können die Tasten angepasst werden.
 global KeyL := "PgDn"
 global KeyR := "PgUp"
 
-
 ; Zeiten zum ändern.
-JiggTime := 1650
+JiggTime := 500
+JiggPause := 2500
 TwitchTime := 350
-PilkTime := 1000
+TwitchPause := 1500
+PilkTime := 500
+PilkPause := 1500
 extendPause :=  500 ; Pausenzeit
 
 ;=============== Nicht Anfassen ==================
 
 ; Basiswert in Millisekunden
-pressTime := 500  
-randomRange := 50    
-running := false     
+pressTime := 500
+randomRange := 50
+running := false
 toggle := false
 toggle1 := true
 toggle2 := false
 settimer, main, 10
 Count := 0
 cook := false
-spot1X := 0
-spot1Y := 0
+spot1X := 1082
+spot1Y := 1296
+spot2X = 0
+spot2Y = 0
+spot3X = 0
+spot3Y = 0
+spot4X = 0
+spot4Y = 0
+
+numon := false
+Global numont := (numon = "1") ? "on" : "off"
+Global menuont := (menuon = "1") ? "on" : "off"
 
 main:
     if (overlay.BeginDraw())
     {
+        numont := (numon = "1") ? "on" : "off"
         ;overlay.FillRectangle(overlay.realX +overlay.realWidth//2 -150,overlay.realY,300,30,0xAA000000)
-        overlay.DrawText("Tastenbelegung: F1-Menu on/off | F2-Jiggen | F3-Einholen | F4-Twitchen | F5-Pilken | F6-Display on/off | F7-Exit | Ende-Autowalk" ,0,10,20,0x39FF1, "Arial", "aCenter")
+        overlay.DrawText("Tastenbelegung: F1-Menu " + menuont " | F2-Jiggen | F3-Einholen | F4-Twitchen | F5-Pilken | F6-Display on/off | F7-Num " + numont " | F8-Exit | Ende-Autowalk" ,0,10,20,0x39FF1, "Arial", "aCenter")
         overlay.DrawText("Einholzeit: " + pressTime,0,40,20,0x39FF14, "Arial", "aCenter")
         overlay.DrawText("Pausenzeit: " + extendPause,0,60,20,0x39FF14, "Arial", "aCenter")
         overlay.DrawText("Randomtime: " + randomRange,0,80,20,0x39FF14, "Arial", "aCenter")
@@ -57,7 +69,8 @@ main:
             overlay.DrawText("Loop an",0,120,20,0xff0734, "Arial", "aCenter")
         if (walk)
             overlay.DrawText("Autowalk an",0,120,20,0xff0734, "Arial", "aCenter")
-
+        if (toggleS)
+            overlay.DrawText("Shift an",0,140,20,0xff0734, "Arial", "aCenter")
         overlay.EndDraw() ;must always call EndDraw() to finish drawing
 
     }
@@ -124,7 +137,7 @@ setClick:
     KeyWait, LButton, D
     MouseGetPos, spot1X, spot1Y
     Sleep 200
-    ToolTip , Spots selection completed, press F4 to start fishing!
+    ToolTip , Spots selection completed, press Pos1 to start Crafting!
     SetTimer, RemoveToolTip, -2500
 Return
 
@@ -133,6 +146,7 @@ Return
 ; -----------------------------
 F1::
     menuon := !menuon
+    menuont := (menuon = "1") ? "on" : "off"
     if (menuon)
         Gosub, MenuUi
     Else
@@ -149,16 +163,25 @@ Return
     if (running) {
         pressTime := JiggTime
         SetTimer, StopTimer, 100
-        SetTimer, PressLoop, %pressTime%
+        SetTimer, PressLoop2, %pressTime%
 
         ;ToolTip, Timer gestartet (%pressTime% ms ± %randomRange% ms)
     } else {
-        SetTimer, PressLoop, Off
+        SetTimer, PressLoop2, Off
         ;ToolTip, Timer gestoppt
     }
     if(toggle)
         toggle := false
 ;SetTimer, RemoveToolTip, -1500
+return
+
+End::
++End::
+    toggleS := !toggleS
+    if (toggleS)
+        Send, {Shift down}
+    else
+        Send, {Shift up}
 return
 
 ~F3::
@@ -174,10 +197,12 @@ return
     if (toggle) {
         ; Taste gedrückt halten
         Send, {%KeyL% down}
+        SetTimer, StopTimer, 100
         ;ToolTip, Einholen an.
     } else {
         ; Taste loslassen
         Send, {%KeyL% up}
+        SetTimer, StopTimer, Off
         ;ToolTip, Einholen aus.
     }
 Return
@@ -192,11 +217,9 @@ F4::
         pressTime := TwitchTime
         SetTimer, StopTimer, 100
         SetTimer, PressLoop2, %pressTime%
-        ;ToolTip, Timer gestartet (%pressTime% ms ± %randomRange% ms)
     } else {
         SetTimer, PressLoop2, Off
 
-        ;ToolTip, Timer gestoppt
     }
     if(toggle)
         toggle := false
@@ -212,14 +235,14 @@ F5::
         pressTime := PilkTime
         SetTimer, StopTimer, 100
         SetTimer, PressLoop3, %pressTime%
-        ;ToolTip, Timer gestartet (%pressTime% ms ± %randomRange% ms)
     } else {
         SetTimer, PressLoop3, Off
 
-        ;ToolTip, Timer gestoppt
     }
-    if(toggle)
+    if(toggle){
         toggle := false
+        Send, {%KeyL% up}
+    }
 Return
 
 ; -----------------------------
@@ -252,6 +275,12 @@ PressLoop2:
     ; Zufällige Haltezeit berechnen
     Random, holdTime2, % pressTime - randomRange, % pressTime + randomRange
 
+    if (running)
+        extendPause := JiggPause
+    if (toggle2)
+        extendPause := Twitchpause
+    if (toggle3)
+        extendPause := PilkPause
     ; Zufällige Pausenzeit berechnen
     Random, pauseTime2, % extendPause - randomRange, % extendPause + randomRange
 
@@ -265,6 +294,8 @@ PressLoop2:
 return
 
 PressLoop3:
+
+    extendPause := PilkPause
     ; Zufällige Haltezeit berechnen
     Random, holdTime2, % pressTime - randomRange, % pressTime + randomRange
 
@@ -285,18 +316,24 @@ StopTimer:
     if(state = "D")
     {
         SetTimer, PressLoop, Off
-        if (running)
+        if (running){
             JiggTime := pressTime
+            JiggPause := extendPause
+        }
         running := false
 
         SetTimer, PressLoop2, Off
-        if (toggle2)
+        if (toggle2){
             TwitchTime := pressTime
+            TwitchPause := extendPause
+        }
         toggle2 := false
 
         SetTimer, PressLoop3, Off
-        if (toggle3)
+        if (toggle3){
             PilkTime := pressTime
+            PilkPause := extendPause
+        }
         toggle3 := false
     }
     GetKeyState, state, LButton
@@ -306,6 +343,11 @@ StopTimer:
         if (running)
             JiggTime := pressTime
         running := false
+
+        if (toggle){
+            toggle := False
+            Send, {%KeyL% up}
+        }
 
         SetTimer, PressLoop2, Off
         if (toggle2)
@@ -407,7 +449,103 @@ return
 ; -----------------------------
 ; Skript komplett beenden mit ESC
 ; -----------------------------
-F7::ExitApp
+F8::ExitApp
+
+F7::
+    numon := !numon
+    numont := (numon = "1") ? "on" : "off"
+Return
+
+^+::
+    If (!WinActive RF4_window)
+    {
+        WinActivate, %RF4_window%
+    }
+    if (spot2X = 0){
+        MsgBox, , Achtung, Erst Clickpunkte setzen,10
+        return
+    }
+    ;SetTimer, dig, 45000
+    Send, {7}
+    Sleep, 2000
+    MouseClick, left
+    sleep, 3500
+    send {Space}
+    sleep, 1000
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot2X, spot2Y
+    MouseClick, Left, spot2X, spot2Y
+    send, {t up}
+    sleep, 1500
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot3X, spot3Y
+    MouseClick, Left, spot3X, spot3Y
+    send, {t up}
+    sleep, 1500
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot4X, spot4Y
+    MouseClick, Left, spot4X, spot4Y
+    sleep 500
+    send, {t up}
+    sleep 100
+    send, {BackSpace}
+Return
+
+^#::
+    send, {t down}
+    ToolTip , Click on the first spot...
+    KeyWait, LButton, D
+    MouseGetPos, spot2X, spot2Y
+    Sleep 200
+    ToolTip , Click on the second spot...
+    KeyWait, LButton, D
+    MouseGetPos, spot3X, spot3Y
+    Sleep 200
+    ToolTip , Click on the third spot...
+    KeyWait, LButton, D
+    MouseGetPos, spot4X, spot4Y
+    Sleep 200
+    ToolTip , Spots selection completed, press F4 to start Buddeling!
+    SetTimer, RemoveToolTip, -2500
+    KeyWait, LButton, D
+    send, {t up}
+return
+
+dig:
+    If (!WinActive RF4_window)
+    {
+        WinActivate, %RF4_window%
+    }
+    Send, {7}
+    Sleep, 2000
+    MouseClick, left
+    sleep, 3500
+    send {Space}
+    sleep, 1000
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot2X, spot2Y
+    MouseClick, Left, spot2X, spot2Y
+    send, {t up}
+    sleep, 1500
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot3X, spot3Y
+    MouseClick, Left, spot3X, spot3Y
+    send, {t up}
+    sleep, 1500
+    send, {t down}
+    sleep, 1000
+    MouseMove, spot4X, spot4Y
+    MouseClick, Left, spot4X, spot4Y
+    sleep 500
+    send, {t up}
+    sleep 100
+    send, {BackSpace}
+return
 
 ~Numpad0::
     running := false
@@ -430,6 +568,8 @@ return
 return
 
 ~Numpad1::
+    if (!numon)
+        return
     If (!WinActive RF4_window)
     {
         WinActivate, %RF4_window%
@@ -476,6 +616,8 @@ return
 return
 
 ~Numpad2::
+    if (!numon)
+        return
     If (!WinActive RF4_window)
     {
         WinActivate, %RF4_window%
@@ -501,6 +643,8 @@ return
 return
 
 ~Numpad3::
+    if (!numon)
+        return
     If (!WinActive RF4_window)
     {
         WinActivate, %RF4_window%
@@ -548,7 +692,7 @@ F6::
     }
 return
 
-End::
+Up::
     walk := !walk
     if (walk)
         Send {W down}
@@ -557,7 +701,7 @@ End::
 Return
 
 Home::
-    settimer, looper, % (cook:=!cook) ? 2450 : "off"
+    settimer, looper, % (cook:=!cook) ? 1000 : "off"
 return
 
 looper:
@@ -567,10 +711,8 @@ looper:
     }
     MouseMove, spot1X, spot1Y
     MouseClick, Left, spot1X, spot1Y
-    sleep 2300
+    sleep 1000
     Send, {Space}
     sleep 100
 Return
-
-
 
