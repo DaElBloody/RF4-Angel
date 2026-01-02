@@ -3,8 +3,7 @@
 
 SetWorkingDir %A_ScriptDir%
 
-RF4_window := "ahk_exe rf4_x64.exe"
-
+winTitle := "ahk_exe rf4_x64.exe"
 overlay := new ShinsOverlayClass(RF4_window)
 
 ; Hier können die Tasten angepasst werden.
@@ -162,13 +161,14 @@ Return
     running := !running
     if (running) {
         pressTime := JiggTime
+        extendPause := JiggPause
+
         SetTimer, StopTimer, 100
         SetTimer, PressLoop2, %pressTime%
-
-        ;ToolTip, Timer gestartet (%pressTime% ms ± %randomRange% ms)
     } else {
         SetTimer, PressLoop2, Off
-        ;ToolTip, Timer gestoppt
+        JiggTime := pressTime
+        JiggPause := extendPause
     }
     if(toggle)
         toggle := false
@@ -195,15 +195,11 @@ return
     }
     toggle := !toggle
     if (toggle) {
-        ; Taste gedrückt halten
         Send, {%KeyL% down}
         SetTimer, StopTimer, 100
-        ;ToolTip, Einholen an.
     } else {
-        ; Taste loslassen
         Send, {%KeyL% up}
         SetTimer, StopTimer, Off
-        ;ToolTip, Einholen aus.
     }
 Return
 
@@ -215,6 +211,7 @@ F4::
     toggle2 := !toggle2
     if (toggle2) {
         pressTime := TwitchTime
+        extendPause := TwitchPause
         SetTimer, StopTimer, 100
         SetTimer, PressLoop2, %pressTime%
     } else {
@@ -233,10 +230,13 @@ F5::
     toggle3 := !toggle3
     if (toggle3) {
         pressTime := PilkTime
+        extendPause := PilkPause
         SetTimer, StopTimer, 100
         SetTimer, PressLoop3, %pressTime%
     } else {
         SetTimer, PressLoop3, Off
+        PilkTime := pressTime
+        PilkPause :=extendPause
 
     }
     if(toggle){
@@ -275,8 +275,8 @@ PressLoop2:
     ; Zufällige Haltezeit berechnen
     Random, holdTime2, % pressTime - randomRange, % pressTime + randomRange
 
-    if (running)
-        extendPause := JiggPause
+    if (JiggPause != extendPause )
+        JiggPause := extendPause
     if (toggle2)
         extendPause := Twitchpause
     if (toggle3)
@@ -295,7 +295,12 @@ return
 
 PressLoop3:
 
-    extendPause := PilkPause
+    if (JiggPause != extendPause )
+        JiggPause := extendPause
+    if (toggle2)
+        extendPause := Twitchpause
+    if (PilkTime != extendPause)
+         PilkPause := extendPause
     ; Zufällige Haltezeit berechnen
     Random, holdTime2, % pressTime - randomRange, % pressTime + randomRange
 
