@@ -3,9 +3,19 @@
 
 #Include Data/ShinsOverlayClass_v2.ahk
 
+if NOT A_IsAdmin {
+    Run("*RunAs `"" A_ScriptFullPath "`"")
+    ExitApp()
+}
+
 winTitle := 'ahk_exe rf4_x64.exe'
 
-overlay := ShinsOverlayClass(winTitle, 0)
+if !WinExist(winTitle) {
+    MsgBox "Game not found!"
+    ExitApp
+}
+
+
 
 settimer(main, 10)
 
@@ -41,6 +51,15 @@ Count := 0
 cook := false
 PressTime := "off"
 Pausetime := "off"
+
+spot1X := 0
+spot1Y := 0
+spot2X := 0
+spot2Y := 0
+spot3X := 0
+spot3Y := 0
+spot4X := 0
+spot4Y := 0
 
 numon := false
 menuon := false
@@ -92,11 +111,11 @@ main() {
     if (toggleS)
         overlay.DrawText("Shift an", 0, 140, 20, 0xff0734, "Arial", "aCenter")
     if (help) {
-        overlay.DrawText("|| Str + ↑ Einholzeit erhöhen || Str + ↓ Einholzeit verringern ||", 0, 100, 20, 0xff0734,
+        overlay.DrawText("|| Alt + ↑ Einholzeit erhöhen || Alt + ↓ Einholzeit verringern ||", 0, 100, 20, 0xff0734,
             "Arial", "aCenter")
-        overlay.DrawText("|| Str + → Pausenzeit erhöhen || Str + ← Pausenzeit verringern ||", 0, 120, 20, 0xff0734,
+        overlay.DrawText("|| Alt + → Pausenzeit erhöhen || Alt + ← Pausenzeit verringern ||", 0, 120, 20, 0xff0734,
             "Arial", "aCenter")
-        overlay.DrawText("|| F9 Reload Script ||", 0, 140, 20, 0xff0734, "Arial", "aCenter")
+        overlay.DrawText("|| F9 Reload Script || Pos1 Crafting Loop ||", 0, 140, 20, 0xff0734, "Arial", "aCenter")
     }
 
     overlay.DrawText("Einholzeit: " PressTime, 0, 40, 20, 0x39FF14, "Arial", "aCenter")
@@ -105,7 +124,6 @@ main() {
 
     overlay.EndDraw() ;must always call EndDraw() to finish drawing
 
-   
     stateR := GetKeyState("RButton")
     if (stateR) {
         if !WinActive(winTitle)
@@ -138,6 +156,10 @@ main() {
             Send '{' KeyL '  up}'
         }
     }
+
+    if !WinExist(winTitle) {
+        ExitApp
+    }
 }
 
 F1:: {
@@ -146,6 +168,11 @@ F1:: {
 }
 
 F2:: {
+    global
+    SetTimer(DoLeftClickTwitch, 0)
+    toggle3 := false
+    SetTimer(DoRightClick, 0)
+    toggle4 := false
     global interval
     global toggle2 := !toggle2
     if (toggle2)
@@ -155,6 +182,12 @@ F2:: {
 }
 
 F3:: {
+    global
+    SetTimer(DoLeftClickJigg, 0)
+    toggle2 := false
+    SetTimer(DoRightClick, 0)
+    toggle4 := false
+    global interval
     global toggle3 := !toggle3
     if (toggle3)
         SetTimer DoLeftClickTwitch, interval
@@ -163,6 +196,11 @@ F3:: {
 }
 
 F4:: {
+    global
+    SetTimer(DoLeftClickJigg, 0)
+    toggle2 := false
+    SetTimer(DoLeftClickTwitch, 0)
+    toggle3 := false
     global interval
     global toggle4 := !toggle4
     if (toggle4)
@@ -172,7 +210,15 @@ F4:: {
 }
 
 #HotIf WinExist(winTitle)
+
 F5:: {
+    global
+    SetTimer(DoLeftClickJigg, 0)
+    SetTimer(DoLeftClickTwitch, 0)
+    SetTimer(DoRightClick, 0)
+    toggle2 := false
+    toggle3 := false
+    toggle4 := false
     global toggle5 := !toggle5
     if toggle5 {
 
@@ -184,6 +230,9 @@ F5:: {
 #HotIf
 
 F6:: {
+    SetTimer(DoLeftClickJigg, 0)
+    SetTimer(DoLeftClickTwitch, 0)
+    SetTimer(DoRightClick, 0)
     WinActivate (winTitle)
     global KeyL
     global toggle5 := !toggle5
@@ -212,13 +261,13 @@ DoRightClick() {
     Pausetime := Random(PilkPause - randomRange, PilkPause + randomRange)
 
     if (busy) {
-        ToolTip 'return'
         return
     }
 
     busy := true
-    SetControlDelay(Presstime)
-    ControlClick "x100 y200", winTitle, , "Right"
+    ControlClick "x100 y200", winTitle, , "Right", , "D"
+    Sleep Presstime
+    ControlClick "x100 y200", winTitle, , "Right", , "U"
     Sleep Pausetime
     busy := false
 }
@@ -232,13 +281,13 @@ DoLeftClickJigg() {
     Pausetime := Random(JiggPause - randomRange, JiggPause + randomRange)
 
     if (busy) {
-        ToolTip 'return'
         return
     }
 
     busy := true
-    SetControlDelay(Presstime)
-    ControlClick "x100 y200", winTitle, , "Left"
+    ControlClick "x100 y200", winTitle, , "Left", , "D"
+    Sleep Presstime
+    ControlClick "x100 y200", winTitle, , "Left", , "U"
     Sleep Pausetime
     busy := false
 }
@@ -252,13 +301,13 @@ DoLeftClickTwitch() {
     Pausetime := Random(JiggPause - randomRange, JiggPause + randomRange)
 
     if (busy) {
-        ToolTip 'return'
         return
     }
 
     busy := true
-    SetControlDelay(Presstime)
-    ControlClick "x100 y200", winTitle, , "Left"
+    ControlClick "x100 y200", winTitle, , "Left", , "D"
+    Sleep Presstime
+    ControlClick "x100 y200", winTitle, , "Left", , "U"
     Sleep Pausetime
     busy := false
 }
@@ -270,7 +319,7 @@ F9:: {
     Reload
 }
 
-^Up:: {
+!Up:: {
     if (toggle2) {
         global JiggTime := JiggTime + 25
     }
@@ -282,7 +331,7 @@ F9:: {
     }
 }
 
-^Down:: {
+!Down:: {
     if (toggle2) {
         global JiggTime := JiggTime - 25
         if (JiggTime < 25)
@@ -300,7 +349,7 @@ F9:: {
     }
 }
 
-^Right:: {
+!Right:: {
     if (toggle2) {
         global JiggPause := JiggPause + 25
     }
@@ -312,7 +361,7 @@ F9:: {
     }
 }
 
-^Left:: {
+!Left:: {
     if (toggle2) {
         global JiggPause := JiggPause - 25
         if (JiggPause < 25)
@@ -329,3 +378,27 @@ F9:: {
             PilkPause := 0
     }
 }
+
+Home:: {
+    global spot1X, spot1y, cook
+    if (spot1X = 0) {
+        ToolTip 'Click on the first spot...'
+        KeyWait "LButton", "D"
+        MouseGetPos &spot1X, &spot1Y
+        Sleep 200
+        ToolTip 'Click selection completed, press Pos1 to start Crafting'
+    }
+    else {
+        settimer(looper, (cook := !cook) ? 1000 : 0)
+        ToolTip ""
+    }
+}
+
+looper() {
+    MouseMove spot1X, spot1Y
+    MouseClick "Left", spot1X, spot1Y
+    sleep 1000
+    Send "{Space}"
+    sleep 100
+}
+
