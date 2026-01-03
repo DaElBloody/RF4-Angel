@@ -15,7 +15,7 @@ if !WinExist(winTitle) {
     ExitApp
 }
 
-
+overlay := ShinsOverlayClass(winTitle, 0)
 
 settimer(main, 10)
 
