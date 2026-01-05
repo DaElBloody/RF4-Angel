@@ -162,11 +162,13 @@ main() {
     }
 }
 
+^1::
 F1:: {
     global help := !help
     global toggle1 := !toggle1
 }
 
+^2::
 F2:: {
     global
     SetTimer(DoLeftClickTwitch, 0)
@@ -181,6 +183,7 @@ F2:: {
         SetTimer DoLeftClickJigg, 0
 }
 
+^3::
 F3:: {
     global
     SetTimer(DoLeftClickJigg, 0)
@@ -195,6 +198,7 @@ F3:: {
         SetTimer DoLeftClickTwitch, 0
 }
 
+^4::
 F4:: {
     global
     SetTimer(DoLeftClickJigg, 0)
@@ -211,6 +215,7 @@ F4:: {
 
 #HotIf WinExist(winTitle)
 
+^5::
 F5:: {
     global
     SetTimer(DoLeftClickJigg, 0)
@@ -229,6 +234,7 @@ F5:: {
 }
 #HotIf
 
+^6::
 F6:: {
     SetTimer(DoLeftClickJigg, 0)
     SetTimer(DoLeftClickTwitch, 0)
@@ -243,6 +249,7 @@ F6:: {
         Send '{' KeyL ' up}'
 }
 
+^7::
 F7:: {
     global walk := !walk
     if walk
@@ -251,6 +258,7 @@ F7:: {
         Send "{W up}"
 }
 
+^8::
 F8:: ExitApp
 
 #HotIf WinExist(winTitle)
@@ -313,6 +321,7 @@ DoLeftClickTwitch() {
 }
 #HotIf
 
+^9::
 F9:: {
     ToolTip "🔄 Script wird neu geladen..."
     Sleep 500
@@ -402,3 +411,22 @@ looper() {
     sleep 100
 }
 
+~Numpad0:: {
+    SetTimer(DoRightClick, 0)
+    SetTimer(DoLeftClickJigg, 0)
+    SetTimer(DoLeftClickTwitch, 0)
+    toggle2 := false
+    toggle3 := false
+    toggle4 := false
+}
+
+End::
++End::{
+    global
+    toggleS := !toggleS
+    if (toggleS)
+        Send "{Shift down}"
+    else
+        Send "{Shift up}"
+
+}
