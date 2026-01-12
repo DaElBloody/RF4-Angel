@@ -31,7 +31,7 @@ JiggPause := 2500
 TwitchTime := 350
 TwitchPause := 1500
 PilkTime := 500
-PilkPause := 1500
+PilkPause := 2500
 randomRange := 50
 
 ;=============================
@@ -51,6 +51,20 @@ Count := 0
 cook := false
 PressTime := "off"
 Pausetime := "off"
+startTime := 0
+elapsed := 0
+total := "0"
+Pausetime1 := 0
+PressTime1 := 0
+Pausetime2 := 0
+PressTime2 := 0
+Pausetime3 := 0
+PressTime3 := 0
+display := 0
+
+running := false
+startTime := 0
+elapsed := 0
 
 spot1X := 0
 spot1Y := 0
@@ -70,13 +84,6 @@ main() {
     global
     numont := (walk = "1") ? "on" : "off"
     menuont := (help = "1") ? "on" : "off"
-    global toggle1
-    global toggle2
-    global toggle3
-    global toggle4
-    global toggle5
-    global Pausetime
-    global PressTime
 
     if (overlay.BeginDraw())
     ;overlay.FillRectangle(overlay.realX +overlay.realWidth//2 -150,overlay.realY,300,30,0xAA000000)
@@ -86,17 +93,17 @@ main() {
     ;if (toggle1)
     ;overlay.DrawText("Jig an: ", 0, 100, 20, 0xff0734, "Arial", "aCenter")
     if (toggle2) {
-        overlay.DrawText("Jig an: ", 0, 100, 20, 0xff0734, "Arial", "aCenter")
+        overlay.DrawText("Jig an: " PressTime1 + Pausetime1, 0, 100, 20, 0xff0734, "Arial", "aCenter")
         PressTime := JiggTime
         Pausetime := JiggPause
     }
     if (toggle3) {
-        overlay.DrawText("Twitchen an: ", 0, 100, 20, 0xff0734, "Arial", "aCenter")
+        overlay.DrawText("Twitchen an: " PressTime2 + Pausetime2, 0, 100, 20, 0xff0734, "Arial", "aCenter")
         PressTime := TwitchTime
         Pausetime := TwitchPause
     }
     if (toggle4) {
-        overlay.DrawText("Pilken an: ", 0, 100, 20, 0xff0734, "Arial", "aCenter")
+        overlay.DrawText("Pilken an: " PressTime3 + Pausetime3, 0, 100, 20, 0xff0734, "Arial", "aCenter")
         PressTime := PilkTime
         Pausetime := PilkPause
     }
@@ -111,11 +118,14 @@ main() {
     if (toggleS)
         overlay.DrawText("Shift an", 0, 140, 20, 0xff0734, "Arial", "aCenter")
     if (help) {
-        overlay.DrawText("|| Alt + ↑ Einholzeit erhöhen || Alt + ↓ Einholzeit verringern ||", 0, 100, 20, 0xff0734,
+        overlay.DrawText("|| Alt + ↑ Einholzeit erhöhen || Alt + ↓ Einholzeit verringern ||", 0, 120, 20, 0xff0734,
             "Arial", "aCenter")
-        overlay.DrawText("|| Alt + → Pausenzeit erhöhen || Alt + ← Pausenzeit verringern ||", 0, 120, 20, 0xff0734,
+        overlay.DrawText("|| Alt + → Pausenzeit erhöhen || Alt + ← Pausenzeit verringern ||", 0, 140, 20, 0xff0734,
             "Arial", "aCenter")
-        overlay.DrawText("|| F9 Reload Script || Pos1 Crafting Loop ||", 0, 140, 20, 0xff0734, "Arial", "aCenter")
+        overlay.DrawText("|| F9 Reload Script || Pos1 Crafting Loop || Strg + F1 Timer an || Strg + F2 Timer reset ||", 0, 160, 20, 0xff0734, "Arial", "aCenter")
+    }
+    if (running) {
+        overlay.DrawText("Timer: " display , 0, 120, 40, 0xff0734, "Arial", "aCenter")
     }
 
     overlay.DrawText("Einholzeit: " PressTime, 0, 40, 20, 0x39FF14, "Arial", "aCenter")
@@ -165,7 +175,20 @@ main() {
 ^1::
 F1:: {
     global help := !help
-    global toggle1 := !toggle1
+    ;global toggle1 := !toggle1
+}
+
+^F1:: {
+    global running, startTime, elapsed
+    if (!running) {
+        startTime := A_TickCount
+        running := true
+        SetTimer(UpdateTimer, 100)
+    } else {
+        elapsed += A_TickCount - startTime
+        running := false
+        SetTimer(UpdateTimer, 0)
+    }
 }
 
 ^2::
@@ -181,6 +204,13 @@ F2:: {
         SetTimer DoLeftClickJigg, interval
     else
         SetTimer DoLeftClickJigg, 0
+}
+
+^F2:: {
+    global running, elapsed
+    running := false
+    elapsed := 0
+    SetTimer(UpdateTimer, 0)
 }
 
 ^3::
@@ -262,51 +292,32 @@ F7:: {
 F8:: ExitApp
 
 #HotIf WinExist(winTitle)
-DoRightClick() {
-    static busy := false
-
-    Presstime := Random(PilkTime - randomRange, PilkTime + randomRange)
-    Pausetime := Random(PilkPause - randomRange, PilkPause + randomRange)
-
-    if (busy) {
-        return
-    }
-
-    busy := true
-    ControlClick "x100 y200", winTitle, , "Right", , "D"
-    Sleep Presstime
-    ControlClick "x100 y200", winTitle, , "Right", , "U"
-    Sleep Pausetime
-    busy := false
-}
-#HotIf
-
-#HotIf WinExist(winTitle)
 DoLeftClickJigg() {
+    global
     static busy := false
 
-    Presstime := Random(JiggTime - randomRange, JiggTime + randomRange)
-    Pausetime := Random(JiggPause - randomRange, JiggPause + randomRange)
+    Presstime1 := Random(JiggTime - randomRange, JiggTime + randomRange)
+    Pausetime1 := Random(JiggPause - randomRange, JiggPause + randomRange)
 
     if (busy) {
         return
     }
-
     busy := true
     ControlClick "x100 y200", winTitle, , "Left", , "D"
-    Sleep Presstime
+    Sleep Presstime1
     ControlClick "x100 y200", winTitle, , "Left", , "U"
-    Sleep Pausetime
+    Sleep Pausetime1
     busy := false
 }
 #HotIf
 
 #HotIf WinExist(winTitle)
 DoLeftClickTwitch() {
+    global
     static busy := false
 
-    Presstime := Random(JiggTime - randomRange, JiggTime + randomRange)
-    Pausetime := Random(JiggPause - randomRange, JiggPause + randomRange)
+    Presstime2 := Random(JiggTime - randomRange, JiggTime + randomRange)
+    Pausetime2 := Random(JiggPause - randomRange, JiggPause + randomRange)
 
     if (busy) {
         return
@@ -314,9 +325,29 @@ DoLeftClickTwitch() {
 
     busy := true
     ControlClick "x100 y200", winTitle, , "Left", , "D"
-    Sleep Presstime
+    Sleep Presstime2
     ControlClick "x100 y200", winTitle, , "Left", , "U"
-    Sleep Pausetime
+    Sleep Pausetime2
+    busy := false
+}
+#HotIf
+
+#HotIf WinExist(winTitle)
+DoRightClick() {
+    global
+    static busy := false
+
+    Presstime3 := Random(PilkTime - randomRange, PilkTime + randomRange)
+    Pausetime3 := Random(PilkPause - randomRange, PilkPause + randomRange)
+
+    if (busy) {
+        return
+    }
+    busy := true
+    ControlClick "x100 y200", winTitle, , "Right", , "D"
+    Sleep Presstime3
+    ControlClick "x100 y200", winTitle, , "Right", , "U"
+    Sleep Pausetime3
     busy := false
 }
 #HotIf
@@ -421,7 +452,7 @@ looper() {
 }
 
 End::
-+End::{
++End:: {
     global
     toggleS := !toggleS
     if (toggleS)
@@ -429,4 +460,41 @@ End::
     else
         Send "{Shift up}"
 
+}
+
+#HotIf WinExist(winTitle)
+!#:: {
+
+}
+#HotIf
+
+#HotIf WinExist(winTitle)
+NumpadEnter:: {
+    WinActive('A'), WinActivate(winTitle)
+    ControlSend "{NumpadEnter}", , winTitle
+    try WinActivate()
+
+}
+#HotIf
+
+UpdateTimer() {
+    global running, startTime, elapsed, display
+
+    totalMs := elapsed
+    if (running && startTime > 0)
+        totalMs += A_TickCount - startTime
+
+    totalSec := Floor(totalMs / 1000)
+
+    hours := Floor(totalSec / 3600)
+    minutes := Floor(Mod(totalSec, 3600) / 60)
+    seconds := Mod(totalSec, 60)
+
+    if (totalSec < 60) {
+        display := Round(totalMs / 1000, 1) " sek"
+    } else if (totalSec < 3600) {
+        display := Format("{:02}:{:02}", minutes, seconds) " min"
+    } else {
+        display := Format("{:02}:{:02}:{:02}", hours, minutes, seconds) " std"
+    }
 }
